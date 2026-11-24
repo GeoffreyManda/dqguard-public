@@ -1,0 +1,96 @@
+test_that("all duplicate members and original row coordinates are retained", {
+  d <- data.frame(id = c("a", "b", "b"), x = c(2, -1, 4))
+  saved <- d
+  r <- dq_run(d, dq_rules(dq_spec("id.unique", "unique", "id"), dq_spec("x.range", "range", "x", list(min = 0))))
+  expect_equal(r$findings$row[r$findings$rule_id == "id.unique"], c(2L, 3L))
+  expect_identical(d, saved)
+  expect_false(dq_gate(r, error = FALSE))
+  expect_error(dq_gate(r), class = "dq_gate_error")
+})
+test_that("tolerated defects are still quarantined and whole snapshot is blocked", {
+  d <- data.frame(x = c(1, 2, -1, 4))
+  r <- dq_run(d, dq_spec("x", "range", "x", list(min = 0), max_fail_rate = .25))
+  expect_equal(r$metrics$fail_rate, .25)
+  expect_false(r$metrics$breached)
+  expect_true(dq_gate(r, "partition", error = FALSE))
+  expect_false(dq_gate(r, "full", error = FALSE))
+  p <- dq_partition(d, r)
+  expect_equal(p$indices$quarantine, 3L)
+  expect_equal(nrow(p$accepted), 3L)
+  expect_equal(nrow(p$held), 0L)
+})
+test_that("a breached quarantine threshold also holds otherwise valid records", {
+  d <- data.frame(x = c(1, -1))
+  p <- dq_partition(d, dq_run(d, dq_spec("x", "range", "x", list(min = 0))))
+  expect_equal(nrow(p$quarantine), 1L)
+  expect_equal(nrow(p$held), 1L)
+  expect_equal(nrow(p$accepted), 0L)
+})
+test_that("stale snapshots cannot be partitioned", {
+  d <- data.frame(x = 1:3); r <- dq_run(d, dq_spec("x", "not_missing", "x"))
+  d$x[1] <- 9L
+  expect_error(dq_partition(d, r), class = "dq_stale_result")
+})
+test_that("errors warnings and wrong output shapes never pass", {
+  d <- data.frame(x = 1:3)
+  callbacks <- list(function(d, c) TRUE, function(d, c) 1:3,
+    function(d, c) matrix(TRUE, 3, 1), function(d, c) stop("SECRET"),
+    function(d, c) { warning("SECRET"); rep(TRUE, nrow(d)) })
+  for (fun in callbacks) {
+    r <- dq_run(d, dq_rule("broken", fun))
+    expect_identical(r$metrics$status, "error")
+    expect_false(dq_gate(r, error = FALSE))
+    expect_false(grepl("SECRET", r$metrics$error))
+  }
+})
+test_that("NA policies preserve denominators and no evidence is not a pass", {
+  d <- data.frame(x = c(1, NA_real_, -1))
+  r <- dq_run(d, dq_spec("x", "range", "x", list(min = 0), na_policy = "exclude"))
+  expect_equal(r$metrics$n_evaluated, 2L)
+  expect_equal(r$metrics$n_excluded, 1L)
+  expect_equal(r$metrics$n_unknown, 1L)
+  r <- dq_run(data.frame(x = NA_real_), dq_spec("x", "range", "x", list(min = 0), na_policy = "exclude"))
+  expect_identical(r$metrics$status, "not_evaluated")
+  expect_false(dq_gate(r, error = FALSE))
+  r <- dq_run(data.frame(x = numeric()), dq_spec("x", "not_missing", "x"))
+  expect_identical(r$metrics$status, "not_evaluated")
+})
+test_that("unknown applicability fails and known inapplicability is explicit", {
+  d <- data.frame(x = c(NA, 1, 1), eligible = c(FALSE, TRUE, NA))
+  r <- dq_run(d, dq_spec("x", "not_missing", "x", when = function(d, c) d$eligible))
+  expect_equal(r$findings$row, 3L)
+  expect_identical(r$findings$code, "unknown_applicability")
+  expect_equal(r$metrics$n_evaluated, 2L)
+  r <- dq_run(d, dq_spec("x", "not_missing", "x", when = function(d, c) rep(FALSE, nrow(d))))
+  expect_identical(r$metrics$status, "not_applicable")
+})
+test_that("configuration rejects duplicate IDs unknown parameters and scope errors", {
+  expect_error(dq_rules())
+  expect_error(dq_rules(dq_spec("x", "unique", "x"), dq_spec("x", "unique", "x")))
+  expect_error(dq_spec("x", "range", "x", list(min = 0, maximum = 1)))
+  expect_error(dq_spec("x", "row_count", params = list(min = 1), scope = "row"))
+  expect_error(dq_rule("x", function(d,c) TRUE, max_fail_rate = 2))
+  expect_error(dq_run(data.frame(x = 1, x = 2, check.names = FALSE), dq_spec("x", "unique", "x")))
+})
+test_that("rule and versioned input changes affect signatures", {
+  d <- data.frame(x = 1:2)
+  a <- dq_run(d, dq_spec("x", "range", "x", list(min = 0)), context = list(unit = "m"))
+  b <- dq_run(d, dq_spec("x", "range", "x", list(min = 1)), context = list(unit = "m"))
+  c <- dq_run(d, dq_spec("x", "range", "x", list(min = 0)), context = list(unit = "cm"))
+  expect_false(identical(a$rule_hash, b$rule_hash))
+  expect_false(identical(a$rule_hash, c$rule_hash))
+})
+test_that("default reports do not contain raw identifier values", {
+  d <- data.frame(id = "sensitive_subject_001", x = -1)
+  a <- dq_run(d, dq_spec("x", "range", "x", list(min = 0)), key = "id")
+  b <- dq_run(d, dq_spec("x", "range", "x", list(min = 0)), key = "id", identity_secret = "test-only-secret")
+  expect_identical(a$findings$record_id, "row:1")
+  expect_match(b$findings$record_id, "^id:[a-f0-9]{64}$")
+  expect_false(any(grepl("sensitive_subject", unlist(a$findings))))
+})
+
+test_that("nearby representable numeric keys do not collapse under formatting", {
+  d <- data.frame(id = c(1, 1 + 2^-52))
+  r <- dq_run(d, dq_spec("id", "unique", "id"))
+  expect_identical(r$metrics$status, "pass")
+})

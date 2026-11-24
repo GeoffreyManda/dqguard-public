@@ -1,0 +1,35 @@
+test_that("HTML escapes supplied labels and never includes raw data", {
+  d <- data.frame(id="SECRET-ID",x=-1)
+  r <- dq_run(d,dq_spec("<script>alert(1)</script>","range","x",list(min=0)),dataset="<unsafe>")
+  p <- tempfile(fileext=".html"); on.exit(unlink(p)); dq_report(r,p)
+  text <- paste(readLines(p),collapse="\n")
+  expect_false(grepl("<script>",text,fixed=TRUE))
+  expect_true(grepl("&lt;script&gt;",text,fixed=TRUE))
+  expect_false(grepl("SECRET-ID",text,fixed=TRUE))
+  expect_error(dq_report(r,p))
+})
+test_that("CSV neutralizes spreadsheet formula prefixes and JSON retains all findings", {
+  r <- dq_run(data.frame(x=c(-1,-2)),dq_spec("=DANGER()","range","x",list(min=0)))
+  p <- tempfile(fileext=".csv"); j <- tempfile(fileext=".json"); on.exit(unlink(c(p,j)))
+  dq_export(r,p,format="csv")
+  expect_match(paste(readLines(p),collapse=""),"'=DANGER",fixed=TRUE)
+  dq_export(r,j,format="json")
+  z <- jsonlite::fromJSON(j)
+  expect_equal(nrow(z$findings),2L)
+  expect_null(z$states); expect_null(z$record_ids)
+})
+test_that("catalogues have unique identifiers and explicit coverage status", {
+  for (type in c("controls","standards","tools")) expect_gt(nrow(dq_catalog(type)),0L)
+  controls <- dq_catalog("controls")
+  expect_false(anyDuplicated(controls$control_id)>0L)
+  expect_true(all(c("requirement","implementation","source_ids") %in% names(controls)))
+})
+
+test_that("no-overwrite exports preserve a destination created during writing", {
+  p <- tempfile(); on.exit(unlink(p))
+  expect_error(dqguard:::.dq_atomic_write(p, function(tmp) {
+    writeLines("new content", tmp)
+    writeLines("existing content", p)
+  }), "Could not commit without replacement")
+  expect_identical(readLines(p), "existing content")
+})

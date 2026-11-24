@@ -1,0 +1,112 @@
+control_id,domain,requirement,severity,implementation,function,source_ids,required_inputs,interpretation_or_threshold
+contract.purpose,Contract,Intended use and unit of observation are explicit,critical,built_in,dq_contract,PROJECT;ISO25012,Approved purpose and grain,Nonempty declarations
+contract.dictionary,Contract,Every variable has an approved definition and storage type,critical,built_in,dq_dictionary;dq_contract,PROJECT;FRICTIONLESS,Central versioned dictionary,All expected variables
+contract.units,Contract,Measurement units and conversions agree with indicator definitions,critical,manual_evidence,dq_assess_controls,PROJECT;WHO_DQA,Signed unit definitions and transformation review,Project-approved units
+contract.version,Contract,Rule set and dictionary versions are identifiable,critical,built_in,dq_contract;dq_run,W3C_PROV;PROJECT,Contract version and content hashes,Exact run binding
+contract.thresholds,Contract,Every tolerance has a rationale and owner,error,configured_rule,dq_rule,ISO25024;PROJECT,Use-specific approval,No universal cutoff
+contract.constraints,Contract,Database constraints are semantically equivalent to dictionary requirements,critical,manual_evidence,dq_db_audit;dq_assess_controls,PROJECT;ISO25012,"DDL, trigger and CASE review","Exact business meaning, not text similarity"
+reference.version,Reference data,Reference tables have declared versions available to the run,critical,built_in,dq_contract;dq_run,W3C_PROV;PROJECT,Versioned master tables,Exact version match
+reference.keys,Reference data,Master reference keys are complete and unique,critical,built_in,dq_spec:foreign_key,FRICTIONLESS,Reference dataset,Zero missing or duplicated keys
+reference.membership,Reference data,Child keys match the approved reference,error,built_in,dq_spec:foreign_key,FRICTIONLESS,Child and parent key columns,Project threshold
+reference.hardcodes,Reference data,Scattered hardcoded lookup values receive review,warning,diagnostic,dq_logic_audit,WB_DIME;PROJECT,Required source scripts,Lexical signals require interpretation
+file.name,Files,Filename matches the approved project-period-dataset convention,error,built_in,dq_file_audit,PROJECT,Approved regular expression,Exact named pattern
+file.readable,Files,Original file is available and readable,critical,built_in,dq_file_audit,PROJECT,Original file,Unreadable is fail
+file.snapshot,Files,Original file has an identifiable checksum,error,built_in,dq_file_audit,W3C_PROV,Original bytes,"SHA256, not authenticity proof"
+file.limits,Files,File and decompressed archive stay within inspection budgets,critical,built_in,dq_file_audit,PROJECT,Size and member limits,Over-budget is not_evaluated
+file.csv_shape,Files,CSV record widths and headers are structurally valid,critical,built_in,dq_file_audit,W3C_CSVW,Unmodified source CSV,No padded ragged records
+file.legacy_formats,Files,Unsupported or encrypted file formats require a suitable reader,critical,manual_evidence,dq_assess_controls,PROJECT,Reader and import evidence,No silent pass for unsupported files
+structure.blank_rows,Structure,No empty observation rows or internal worksheet gaps,error,built_in,dq_file_audit;dq_spec:no_blank_rows,W3C_CSVW;PROJECT,Original file and imported table,No unexplained gaps
+structure.summary_rows,Structure,Summary labels are not mixed with observations,error,configured_rule,dq_spec:no_summary_rows,PROJECT,Approved list of prohibited row labels,No heuristic auto-deletion
+structure.grain,Structure,Keys reflect the intended observation grain,critical,built_in,dq_contract;dq_spec:unique,PROJECT;FRICTIONLESS,Explicit composite key,Zero unexpected duplicates
+structure.row_count,Structure,Expected volume or minimum nonempty dataset exists,critical,built_in,dq_spec:row_count,PROJECT;ISO25024,Approved min/max,Default contract min_rows is one
+structure.extra_columns,Structure,No undeclared additional columns,error,built_in,dq_contract,FRICTIONLESS;PROJECT,Dictionary and allow_extra policy,Exact schema comparison
+structure.column_names,Structure,Column names are populated and unique before repair,critical,built_in,dq_file_audit;dq_run,W3C_CSVW,Raw header names,No automatic name repair
+structure.naming_style,Structure,Names follow approved syntax and are interpretable,warning,configured_rule,dq_rule,PROJECT,Column naming expression and dictionary review,Project-specific pattern
+xlsx.merged,Excel,Data worksheets do not contain unapproved merged cells,error,built_in,dq_file_audit,PROJECT,Original OOXML workbook,Zero unapproved merges
+xlsx.hidden_rows,Excel,Hidden observation rows are identified,error,built_in,dq_file_audit,PROJECT,Original OOXML workbook,Zero unapproved hidden rows
+xlsx.hidden_columns,Excel,Hidden columns are identified,error,built_in,dq_file_audit,PROJECT,Original OOXML workbook,Zero unapproved hidden columns
+xlsx.hidden_sheets,Excel,Hidden and very-hidden worksheets are identified,error,built_in,dq_file_audit,PROJECT,Original workbook,Review explicitly excluded sheets
+xlsx.filters,Excel,Saved active filters are distinguished from filter arrows,error,built_in,dq_file_audit,PROJECT,Worksheet and table XML,No unexplained active criteria
+xlsx.formulas,Excel,Formula cells and stale-cache risk receive review,warning,diagnostic,dq_file_audit,PROJECT,Original formulas and recalculation evidence,No formula recalculation by dqguard
+xlsx.error_cells,Excel,Spreadsheet error cells are identified,error,built_in,dq_file_audit,PROJECT,Original cell XML,Zero unexplained error cells
+xlsx.external,Excel,External links and macro parts receive review,warning,diagnostic,dq_file_audit,PROJECT,Workbook relationships and package members,Never execute or fetch during audit
+missing.required,Completeness,Critical fields are complete,critical,built_in,dq_spec:not_missing;dq_contract,ISO25012;PROJECT,Required-field dictionary,Zero missing for required fields
+missing.tolerance,Completeness,Optional fields exceeding approved missingness rates are flagged,warning,built_in,dq_contract;dq_missingness,ISO25024;PROJECT,Variable-specific max_missing,20 percent only when locally approved
+missing.eligibility,Completeness,Missingness denominators exclude genuinely inapplicable records,critical,configured_rule,dq_rule:when;dq_missingness,ISO25024;PROJECT,Eligibility definition,Unknown applicability is not excluded silently
+missing.codes,Completeness,Undeclared blank and sentinel coding is identified,error,configured_rule,dq_spec:no_sentinel;dq_spec:allowed,FRICTIONLESS;PROJECT,Explicit sentinel list,"Zero, minus one and 999 are not globally invalid"
+missing.patterns,Completeness,"Missingness is compared by region, collector, round or source",warning,diagnostic,dq_missingness;dq_profile,WB_DIME;WHO_DQA,Group variables and observation eligibility,Patterns do not identify missingness mechanism
+valid.type,Validity,Stored classes match dictionary types,error,built_in,dq_contract;dq_spec:type,FRICTIONLESS,Declared classes,No silent casting
+valid.range,Validity,Values satisfy domain-approved bounds,error,configured_rule,dq_spec:range,PROJECT;ISO25012,"Units, populations and valid bounds",Do not hardcode universal clinical cutoffs
+valid.finite,Validity,Unintended Inf and NaN values are identified,error,built_in,dq_spec:finite,PROJECT,Numeric fields,Explicit missingness policy
+valid.integer,Validity,Counts are integer-valued within declared tolerance,error,built_in,dq_spec:integerish,PROJECT,Count fields and rounding tolerance,Project precision
+valid.enum,Validity,Categories match exact approved options,error,configured_rule,dq_spec:allowed,FRICTIONLESS,Controlled vocabulary,No silent case conversion
+valid.id_format,Validity,Identifiers match approved formatting,error,configured_rule,dq_spec:regex,FRICTIONLESS;PROJECT,ID regular expression,Preserve leading zeros as text
+valid.whitespace,Validity,Text has no unexplained leading or trailing spaces,warning,built_in,dq_spec:no_whitespace,PROJECT,Text fields,Flag without changing values
+valid.list_cells,Validity,List or mixed-content columns receive explicit schema decisions,error,configured_rule,dq_dictionary;dq_rule,PROJECT,Expected storage and element types,List class alone does not validate each nested element
+logic.required_if,Consistency,A recorded treatment or status requires its dependent date,error,configured_rule,dq_spec:required_if,PROJECT,Trigger field and allowed triggers,Explicit cross-field logic
+logic.missing_if,Consistency,Skipped questions remain empty when required by the form,error,configured_rule,dq_spec:missing_if,PROJECT,Skip condition,Not applicable differs from missing
+logic.exclusive,Consistency,Mutually exclusive selections are not jointly selected,error,built_in,dq_spec:mutually_exclusive,PROJECT,Binary selection fields,At most one or exactly one
+logic.multiselect,Consistency,Multi-select encoding uses legal unique options,error,built_in,dq_spec:multiselect,PROJECT,"Separator, allowed and exclusive options",No duplicated tokens
+logic.compare,Consistency,Interdependent values or dates satisfy declared order,error,configured_rule,dq_spec:compare,PROJECT,"Operator, fields and tolerance",Compatible types required
+logic.sum,Consistency,Components reconcile to their total,error,configured_rule,dq_spec:sum_matches,PROJECT;ISO25024,Components and total definition,Absolute tolerance in stated units
+logic.ratio,Consistency,Numerators and denominators produce valid ratios,error,configured_rule,dq_spec:ratio,PROJECT;WHO_DQA,Ordered numerator and denominator,Zero denominator produces unknown
+logic.sequence,Consistency,Repeated values respect declared temporal order,error,configured_rule,dq_spec:nondecreasing,PROJECT,Entity groups and unambiguous order variable,Duplicates in order yield unknown
+identity.complete,Identity,Unique observation keys are present,critical,built_in,dq_spec:not_missing;dq_contract,FRICTIONLESS,Primary or composite key,Zero absent keys
+identity.duplicates,Identity,All members of unexpected duplicate groups are reported,critical,built_in,dq_spec:unique,FRICTIONLESS,Grain-specific key,Not just later copies
+identity.exact_rows,Identity,Entirely repeated records are identified,error,built_in,dq_spec:no_duplicate_rows,PROJECT,Appropriate response columns,Distinguish legitimate repeated measures
+identity.near_duplicates,Identity,Probabilistic entity matches require adjudication,warning,manual_evidence,dq_assess_controls,PROJECT,Entity linkage analysis and review,No automatic fuzzy deduplication included
+join.cardinality,Relationships,Expected one-to-one or many-to-one joins cannot silently multiply rows,critical,configured_rule,dq_spec:unique;dq_spec:foreign_key;dq_spec:row_count,PROJECT;FRICTIONLESS,Pre/post-join keys and approved cardinality,Compose checks before and after joins
+join.coverage,Relationships,Unmatched source rows and missing reference coverage are measured,error,built_in,dq_coverage;dq_spec:foreign_key,PROJECT,Approved frame/reference,Counts and rates retained
+reconcile.totals,Relationships,Independent source totals agree by reporting group,critical,built_in,dq_reconcile,WHO_DQA;ISO25024,Trusted reference and exact aggregation definitions,Missing groups are not zero-filled
+time.metadata,Time,Event and submission timestamps are available,error,configured_rule,dq_spec:not_missing;dq_survey_signals,ODK_AUDIT;PROJECT,Required timestamp fields,No silent timestamp invention
+time.window,Time,Events occurred inside the approved collection window,error,configured_rule,dq_spec:date_window,PROJECT,UTC ISO8601 boundaries,Inclusive declared boundaries
+time.latency,Time,Event-to-ingestion lag is measurable and acceptable,error,configured_rule,dq_spec:latency,ISO25024;PROJECT,Separate event and insert timestamps,Nonnegative default; max lag configured
+time.future,Time,Dates are not implausibly future-dated,error,configured_rule,dq_spec:future,PROJECT,As-of time and clock tolerance,Clock tolerance explicitly approved
+time.freshness,Time,Latest received data are not stale,critical,configured_rule,dq_spec:freshness,PROJECT;ISO25024,As-of time and freshness limit,Does not establish every partition is present
+time.partitions,Time,Expected rounds or dates have not disappeared,critical,configured_rule,dq_coverage;dq_rule,PROJECT,Expected partition frame,Time-series seasonality needs context
+survey.enumerator,Survey,Collector IDs are complete and match approved rosters,error,configured_rule,dq_spec:not_missing;dq_spec:foreign_key,WB_DIME;ODK_AUDIT,Collector roster,No arbitrary identity invention
+survey.short,Survey,Implausibly short interviews are reviewed,warning,diagnostic,dq_survey_signals,WB_DIME,Instrument-specific minimum duration,Not proof of fabricated interviews
+survey.overlap,Survey,Overlapping interviews by a collector are reviewed,warning,diagnostic,dq_survey_signals,WB_DIME;ODK_AUDIT,Start/end times and clock context,Offline/device behavior can explain patterns
+survey.batch,Survey,Repeated submission timestamps are reviewed,warning,diagnostic,dq_survey_signals,ODK_AUDIT,Upload metadata and offline-sync policy,Batch submission alone is not misconduct
+survey.answers,Survey,Identical response patterns receive review,warning,diagnostic,dq_survey_signals,WB_DIME,Selected response fields and interview context,No automated accusation
+survey.backchecks,Survey,Independent backchecks verify collection and selected responses,critical,manual_evidence,dq_assess_controls,WB_DIME;WHO_DQA,Randomized independent verification evidence,No fabricated confidence from paradata alone
+geo.coordinates,Geography,Coordinates are numeric and within geographical bounds,error,built_in,dq_spec:geo_bounds,OGC_SF;PROJECT,Explicit latitude and longitude order,Zero-zero excluded only by policy
+geo.distance,Geography,Recorded point is within approved distance of reference point,error,configured_rule,dq_spec:distance,PROJECT,Reference coordinates and allowed metres,Spherical distance; GPS precision requires interpretation
+geo.boundary,Geography,Coordinates agree with approved polygon boundaries,error,optional_adapter,dq_geofence,OGC_SF;PROJECT,Versioned polygon and CRS,Boundary intersection is included
+geo.hierarchy,Geography,"Facility, district and province combinations match official mapping",error,configured_rule,dq_spec:foreign_key,PROJECT,Composite master-reference key,Names are not silently normalized
+geo.coverage,Geography,Coverage gaps by region or stratum are identified,critical,diagnostic,dq_coverage;dq_profile,WB_DIME;PROJECT,Sampling frame and design variables,Coverage is not proof of representativeness
+dist.profile,Distribution,Key-variable distributions and nonfinite values are summarized,warning,diagnostic,dq_profile,ISO25024;PROJECT,Numeric variables and strata,"Summary only, not automatic correction"
+dist.drift,Distribution,Comparable-period distributions are checked for change,warning,diagnostic,dq_drift,PROJECT,Comparable baseline and optional KS/TV thresholds,Descriptive effect sizes; not causation or fraud detection
+dist.outliers,Distribution,"Extreme but plausible values are reviewed, not erased",warning,configured_rule,dq_profile;dq_rule,PROJECT,Domain bounds and subgroup context,No automatic winsorization
+dist.fraud,Distribution,Digit patterns and other anomaly scores need independent evidence,critical,manual_evidence,dq_assess_controls,WB_DIME;PROJECT,Investigative corroboration,No Benford-based fabrication verdict
+process.git,Processing,Required scripts are tracked and match expected commit,critical,built_in,dq_git_audit,WB_DIME;W3C_PROV,Repository and required files,Clean commit history is not semantic correctness
+process.schema_drift,Processing,"Added, removed and retyped fields are visible",error,built_in,dq_compare_snapshots;dq_contract,W3C_PROV;PROJECT,Before/after snapshots,Key type changes require explicit migration
+process.edits,Processing,Changed cells and inserted/deleted records have exact change IDs,critical,built_in,dq_compare_snapshots,W3C_PROV,Two keyed snapshots,Hashes do not authenticate the editor
+process.approvals,Processing,Change documentation matches the exact changed content,critical,built_in,dq_compare_snapshots,PROJECT,"Approval ID, URI, hash and reviewer",Approval authenticity needs external controls
+process.idempotence,Processing,Retries do not duplicate database routing receipts,critical,built_in,dq_db_route,PROJECT,Transactional database and unique run receipt,"Duplicate run is rejected, not silently replayed"
+process.reproducibility,Processing,"R, package and system dependencies are reproducible",critical,manual_evidence,dq_assess_controls,WB_DIME;W3C_PROV,Qualified environment and dependency lockfile,No fabricated lockfile from an unexecuted environment
+pipeline.execution,Pipeline,Runtime failures and warnings cannot produce a pass,critical,built_in,dq_run,PROJECT,Executable checks,Errors become explicit findings
+pipeline.trigger,Pipeline,Checks run at the required lifecycle trigger,critical,manual_evidence,dq_assess_controls,PROJECT;OPENLINEAGE,Scheduler/entry-service execution logs,A trigger label is not evidence of deployment
+pipeline.quarantine,Pipeline,Violating records are separated without silent data repair,critical,built_in,dq_partition;dq_db_route,PROJECT,Exact validated snapshot,All affected rows retained
+pipeline.hold,Pipeline,Breached critical gates hold otherwise valid rows where required,critical,built_in,dq_gate;dq_partition,PROJECT,Rule action and breach thresholds,No averaging of critical defects
+pipeline.atomic,Pipeline,Accepted/quarantine/held writes share one transaction,critical,built_in,dq_db_route,PROJECT,Pre-provisioned tables and transaction-capable backend,Backend must be qualified; no nested transactions
+pipeline.alert,Pipeline,"Breaches identify dataset, rule, row and responsible owner",critical,built_in,dq_ticket_payloads;dq_dispatch,PROJECT,Explicit sender callback,No ticket is claimed until delivery confirmed
+pipeline.scale,Pipeline,Resource limits cannot silently turn a census into a sample,critical,built_in,dq_db_read,PROJECT,max_rows and full snapshot,Current engine is local and in-memory
+incident.traceability,Resolution,Findings create persistent issue identities and events,critical,built_in,dq_issues;dq_sync_issues,ISO8000_61;W3C_PROV,Run-bound findings,Stable keyed HMAC identities needed across snapshots
+incident.transitions,Resolution,Incident status changes follow permitted transitions,error,built_in,dq_transition,ISO8000_61;PROJECT,"Actors, reason and evidence",No arbitrary status overwriting
+incident.upstream,Resolution,Resolution records the actual cause and upstream correction,critical,built_in,dq_transition,ISO8000_61;PROJECT,Cause and upstream-fix evidence,Metadata assertions require human review
+incident.recheck,Resolution,Closure requires fresh validation under unchanged requirements,critical,built_in,dq_transition,PROJECT,New dq_result for same entity and rule set,Deletion or weakened thresholds are not correction
+incident.independent,Resolution,Closure and dispositions require independent approval,critical,built_in,dq_transition;dq_assess_controls,PROJECT,Separate actor identities,Names are not authenticated by the package
+incident.waivers,Resolution,"Waivers require reasons, evidence and expiry",error,built_in,dq_transition;dq_resolution_metrics,PROJECT,Approved expiry and evidence,Waivers do not override release gates
+incident.sla,Resolution,Closed duration and still-open backlog ages are both reported,error,built_in,dq_resolution_metrics,ISO25024;ISO8000_61,As-of time and SLA hours,Closed-case median is not a censored survival estimate
+incident.history,Resolution,History modification and expected-head conflicts are detected,critical,built_in,dq_verify_ledger;dq_db_save_ledger,W3C_PROV;PROJECT,Externally retained head and append-only permissions,Hash chain is not a digital signature or administrator-proof storage
+security.access,Security,Least privilege and authorized access are independently evidenced,critical,manual_evidence,dq_assess_controls,PROJECT,ACL and identity-provider evidence,File readability does not establish authorization
+security.quarantine,Security,Quarantined raw data use protected storage and retention controls,critical,manual_evidence,dq_assess_controls,PROJECT,"Database roles, encryption and retention rules",Package does not provision authentication or encryption
+security.consent,Security,Consent and approved processing purpose are established,critical,manual_evidence,dq_assess_controls,PROJECT,Approved protocol and permissions,A consent column alone is not legal verification
+security.export,Security,Reports suppress raw data values and escape active content,critical,built_in,dq_report;dq_export,PROJECT,Controlled output destinations,Pseudonymous IDs and source text may still be sensitive
+security.secrets,Security,Stable-identity secrets are protected and rotation is managed,critical,manual_evidence,dq_assess_controls,PROJECT,Secret manager and migration plan,Hashes and HMAC identifiers are not anonymization
+evidence.source_accuracy,Evidence,Values are corroborated against trusted independent sources,critical,manual_evidence,dq_assess_controls;dq_reconcile,WHO_DQA;WB_DIME,Original records and independent observations,Internal consistency does not establish truth
+evidence.media,Evidence,Images and documents have provenance and contextual verification,critical,manual_evidence,dq_assess_controls,PROJECT,"Original media, capture context and reviewer evidence",EXIF or a checksum alone does not prove time/place or content authenticity
+evidence.fresh,Evidence,"Control evidence is current, complete and independently reviewed",critical,built_in,dq_assess_controls,PROJECT,Evidence metadata and optional local hash verification,Remote content is not fetched or authenticated
+evidence.indicators,Evidence,"Indicator definitions agree on numerator, denominator, period and population",critical,manual_evidence,dq_assess_controls;dq_reconcile,WHO_DQA;SDMX;PROJECT,Approved indicator reference sheets,No automatically inferred indicator meaning
+evidence.applicability,Evidence,Every skipped control has a documented non-applicability rationale,error,built_in,dq_assess_controls;dq_audit_rule,ISO25024;PROJECT,Explicit control list and evidence,Missing controls remain not_evaluated

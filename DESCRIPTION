@@ -1,0 +1,18 @@
+Package: dqguard
+Type: Package
+Title: Explicit Data Quality Contracts and Evidence-Based Resolution
+Version: 0.3.0
+Authors@R: person("DQGuard", "Contributors", role = c("aut", "cre"), email = "maintainer@example.org")
+Description: Evaluates data quality contracts with row-level findings,
+    schema and relational checks, survey integrity diagnostics, issue workflows,
+    and generic reference catalogues. This public variant contains the reusable
+    validation core.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Depends: R (>= 4.1.0)
+Imports: digest, jsonlite, stats, utils, tools
+Suggests: testthat (>= 3.0.0), yaml, xml2, DBI, RSQLite, sf, validate, pointblank, targets, survey, codetools
+Config/testthat/edition: 3
+NeedsCompilation: no
+URL: https://github.com/GeoffreyManda/dqguard-public
+BugReports: https://github.com/GeoffreyManda/dqguard-public/issues
