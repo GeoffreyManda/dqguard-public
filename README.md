@@ -1,17 +1,28 @@
 # dqguard
 
-Public source variant of the dqguard R package.
+Data-quality contracts and survey diagnostics.
 
-Provides generic data-quality contracts, guarded checks, survey diagnostics and issue-resolution functions. Client-specific monitoring modules and project catalogues are excluded.
+## Install
 
-## Installation
+```r
+install.packages("remotes")
+remotes::install_github("GeoffreyManda/dqguard-public")
+```
 
-Install with `remotes::install_github("GeoffreyManda/dqguard-public")`, or use `R CMD INSTALL` on the source after installing the dependencies declared in `DESCRIPTION`.
+See the [getting started guide](docs/getting-started.md) for system requirements, a worked example, output interpretation and troubleshooting.
 
-## Licence and credits
+## Run the example
 
-The original licence and contributor notices are retained in the package metadata and licence files.
+```r
+source(system.file("examples", "worked-example.R", package = "dqguard"))
+```
 
-## Validation
+The example uses synthetic inputs and cleans up its temporary output. Its source is [inst/examples/worked-example.R](inst/examples/worked-example.R).
 
-The public core test suite passed on 24 November 2026. Two tests were skipped: one requires the optional validate package, and one applies to the excluded client-derived forensic catalogue.
+## Checks
+
+[GitHub Actions](https://github.com/GeoffreyManda/dqguard-public/actions/workflows/package-checks.yaml) installs the package, runs the installed tests and executes the example on Ubuntu with the current R release.
+
+## Licence and contributors
+
+Original licence and contributor notices are retained in `DESCRIPTION` and the licence files.
